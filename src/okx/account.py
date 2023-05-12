@@ -1,6 +1,6 @@
-from typing import Dict, List, Literal, TypedDict
 from .client import Client
 from .consts import *
+from .types import *
 from .utils import RateLimiter
 import logging
 
@@ -14,27 +14,6 @@ class AccountAPI(Client):
 
     ACCOUNT_CONFIG_SEMAPHORE = RateLimiter(5, 2)
 
-    class AccountConfigResponse(TypedDict):
-        uid: str
-        # acctLv	String	账户层级
-        # 1：简单交易模式，2：单币种保证金模式 ，3：跨币种保证金模式 ，4：组合保证金模式
-        acctLv: str
-        # posMode	String	持仓方式
-        # long_short_mode：双向持仓 net_mode：单向持仓
-        posMode: str
-        autoLoan: bool
-        greeksType: str
-        level: str
-        levelTmp: str
-        ctIsoMode: str
-        mgnIsoMode: str
-        spotOffsetType: str
-        label: str
-        roleType: str
-        traderInsts: List
-        opAuth: str
-        ip: str
-
     async def get_account_config(self) -> AccountConfigResponse:
         """查看当前账户的配置信息
 
@@ -46,9 +25,6 @@ class AccountAPI(Client):
         return res['data'][0]
 
     POSITION_MODE_SEMAPHORE = RateLimiter(5, 2)
-
-    class PosModeResponse(TypedDict):
-        posMode: Literal['long_short_mode', 'net_mode']
 
     async def set_position_mode(self, posMode: Literal['long_short_mode', 'net_mode']) -> PosModeResponse:
         """设置持仓模式

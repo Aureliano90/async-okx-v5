@@ -1,6 +1,6 @@
-from typing import List
 from .client import Client
 from .consts import *
+from .types import *
 from .utils import RateLimiter
 import logging
 import asyncio

@@ -1,6 +1,6 @@
-from typing import Sequence, TypedDict
 from .client import Client
 from .consts import *
+from .types import *
 from .utils import RateLimiter
 import logging
 
@@ -13,16 +13,6 @@ class AssetAPI(Client):
         super(AssetAPI, self).__init__(api_key, api_secret_key, passphrase, use_server_time, test, **kwargs)
 
     ASSET_BALANCE_SEMAPHORE = RateLimiter(6, 1)
-
-    class AssetBalanceResponse(TypedDict):
-        # ccy	String	币种，如 BTC
-        # bal	String	余额
-        # frozenBal	String	冻结余额
-        # availBal	String	可用余额
-        ccy: str
-        bal: str
-        frozenBal: str
-        availBal: str
 
     async def get_balance(self, ccy: Sequence[str]) -> AssetBalanceResponse:
         """获取资金账户余额信息
@@ -41,15 +31,6 @@ class AssetAPI(Client):
         return res['data'][0]
 
     ASSET_TRANSFER_SEMAPHORE = dict()
-
-    AssetTransferResponse = TypedDict('AssetTransferResponse', {
-        'transId': str,  # 划转 ID
-        'ccy': str,  # 划转币种
-        'from': str,  # 转出账户
-        'amt': str,  # 划转量
-        'to': str,  # 转入账户
-        'clientId': str  # 客户自定义ID
-    })
 
     async def transfer(self, ccy, amt, account_from, account_to, instId='', toInstId='') -> AssetTransferResponse:
         """资金划转

@@ -1,8 +1,8 @@
 import asyncio
-from typing import List, Literal, NamedTuple, Sequence, TypedDict
 from .client import Client
 from .consts import *
 from .exceptions import *
+from .types import *
 from .utils import RateLimiter
 import logging
 
@@ -15,8 +15,6 @@ class PublicAPI(Client):
         super(PublicAPI, self).__init__('', '', '', use_server_time, test, **kwargs)
 
     GET_INSTRUMENTS_SEMAPHORE = dict()
-
-    InstType = Literal['SPOT', 'SWAP', 'FUTURES', 'OPTION']
 
     async def get_instruments(self, instType: InstType, instFamily='') -> List[dict]:
         """获取所有可交易产品的信息列表
@@ -128,37 +126,7 @@ class PublicAPI(Client):
 
     GET_CANDLES_SEMAPHORE = RateLimiter(40, 2)
 
-    Bar = Literal['1m', '3m', '5m', '15m', '30m', '1H', '2H', '4H', '6H', '12H', '1D', '1W', '1M', '3M', '6M', '1Y']
-
-    # ts	String	开始时间，Unix时间戳的毫秒数格式，如 1597026383085
-    # o	String	开盘价格
-    # h	String	最高价格
-    # l	String	最低价格
-    # c	String	收盘价格
-    # vol	String	交易量，以张为单位
-    # 如果是衍生品合约，数值为合约的张数。
-    # 如果是币币/币币杠杆，数值为交易货币的数量。
-    # volCcy	String	交易量，以币为单位
-    # 如果是衍生品合约，数值为交易货币的数量。
-    # 如果是币币/币币杠杆，数值为计价货币的数量。
-    # volCcyQuote	String	交易量，以计价货币为单位
-    # 如：BTC-USDT 和 BTC-USDT-SWAP, 单位均是 USDT；
-    # BTC-USD-SWAP 单位是 USD
-    # confirm	String	K线状态
-    # 0 代表 K 线未完结，1 代表 K 线已完结。
-
-    class CandleResponse(NamedTuple):
-        ts: str
-        o: str
-        h: str
-        l: str
-        c: str
-        vol: str
-        volCcy: str
-        volCcyQuote: str
-        confirm: str
-
-    async def get_candles(self, instId: str, bar: Bar = '4H', after='', before='', limit='') -> List[List]:
+    async def get_candles(self, instId: str, bar: Bar = '4H', after='', before='', limit='') -> List[Candle]:
         """获取K线数据。K线数据按请求的粒度分组返回，K线数据每个粒度最多可获取最近1440条
 
         GET /api/v5/market/candles 限速： 40次/2s
@@ -173,7 +141,7 @@ class PublicAPI(Client):
         async with self.GET_CANDLES_SEMAPHORE:
             res = await self._request_with_params(GET, GET_CANDLES, params)
         assert res['code'] == '0', f"{GET_CANDLES}, msg={res['msg']}"
-        return res['data']
+        return [Candle(*candle) for candle in res['data']]
 
     HISTORY_CANDLES_SEMAPHORE = RateLimiter(20, 2)
 
