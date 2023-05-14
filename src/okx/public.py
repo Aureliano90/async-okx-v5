@@ -56,7 +56,7 @@ class PublicAPI(Client):
             raise OkexRequestException(res['msg'])
         return res['data'][0]
 
-    async def get_funding_time(self, instId: str) -> dict:
+    async def get_funding_time(self, instId: str) -> FundingRateResponse:
         """获取当前资金费率
 
         GET /api/v5/public/funding-rate?instId=BTC-USD-SWAP
@@ -70,7 +70,13 @@ class PublicAPI(Client):
         assert res['code'] == '0', f"{FUNDING_RATE}, msg={res['msg']}"
         return res['data'][0]
 
-    async def get_historical_funding_rate(self, instId: str, after='', before='', limit='') -> List[dict]:
+    async def get_historical_funding_rate(
+            self,
+            instId: str,
+            after='',
+            before='',
+            limit=''
+    ) -> List[FundingRateResponse]:
         """获取最近3个月的历史资金费率
 
         GET /api/v5/public/funding-rate-history?instId=BTC-USD-SWAP
@@ -89,7 +95,7 @@ class PublicAPI(Client):
 
     GET_TICKERS_SEMAPHORE = RateLimiter(20, 2)
 
-    async def get_tickers(self, instType: InstType, uly='') -> List[dict]:
+    async def get_tickers(self, instType: InstType, uly='') -> List[TickerResponse]:
         """获取所有产品行情信息
 
         GET /api/v5/market/tickers?instType=SWAP 限速： 20次/2s
@@ -109,7 +115,7 @@ class PublicAPI(Client):
 
     GET_TICKER_SEMAPHORE = RateLimiter(20, 2)
 
-    async def get_specific_ticker(self, instId: str) -> dict:
+    async def get_specific_ticker(self, instId: str) -> TickerResponse:
         """获取单个产品行情信息
 
         GET /api/v5/market/ticker?instId=BTC-USD-SWAP 限速： 20次/2s

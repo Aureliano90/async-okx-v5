@@ -11,24 +11,28 @@ class RateLimiter(asyncio.Semaphore):
     """A custom semaphore to be used with REST API with velocity limit under asyncio
     """
 
-    def __init__(self, value: int, interval: int):
+    def __init__(self, concurrency: int, interval: int):
         """控制REST API访问速率
 
-        :param value: API limit
+        :param concurrency: API limit
         :param interval: Reset interval
         """
-        super().__init__(value)
+        super().__init__(concurrency)
         # Queue of inquiry timestamps
-        self._inquiries = collections.deque(maxlen=value)
+        self._inquiries = collections.deque(maxlen=concurrency)
         self._loop = asyncio.get_event_loop()
+        self._concurrency = concurrency
         self._interval = interval
+        self._count = concurrency
 
     def __repr__(self):
-        return f'API velocity: {self._inquiries.maxlen} inquiries/{self._interval}s'
+        return f'Rate limit: {self._concurrency} inquiries/{self._interval}s'
 
     async def acquire(self):
         await super().acquire()
-        if self._inquiries:
+        if self._count > 0:
+            self._count -= 1
+        else:
             timelapse = time.monotonic() - self._inquiries.popleft()
             # Wait until interval has passed since the first inquiry in queue returned.
             if timelapse < self._interval:
@@ -73,7 +77,7 @@ def get_timestamp():
 def signature(timestamp, method, request_path, body, secret_key):
     if str(body) == '{}' or str(body) == 'None':
         body = ''
-    message = str(timestamp) + str.upper(method) + request_path + str(body)
+    message = f'{timestamp}{method.upper()}{request_path}{body}'
     mac = hmac.new(bytes(secret_key, encoding='utf8'), bytes(message, encoding='utf8'), digestmod='sha256')
     d = mac.digest()
     return base64.b64encode(d)
