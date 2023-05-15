@@ -5,19 +5,19 @@ class OkexException(Exception):
 
 class OkexAPIException(OkexException):
     def __init__(self, status, text, json):
-        print(f'{text}, {status}')
+        print(f"{text}, {status}")
         self.code = 0
-        if 'code' in json.keys():
-            self.code = json['code']
-            self.message = json['msg']
+        if "code" in json.keys():
+            self.code = json["code"]
+            self.message = json["msg"]
         else:
-            self.code = 'None'
-            self.message = 'System error'
+            self.code = "None"
+            self.message = "System error"
 
         self.status_code = status
 
     def __str__(self):  # pragma: no cover
-        return f'API Request Error(error_code={self.code}): {self.message}'
+        return f"API Request Error(error_code={self.code}): {self.message}"
 
 
 class OkexRequestException(OkexException):
@@ -25,7 +25,7 @@ class OkexRequestException(OkexException):
         self.message = message
 
     def __str__(self):
-        return f'OkexRequestException: {self.message}'
+        return f"OkexRequestException: {self.message}"
 
 
 class OkexParamsException(OkexException):
@@ -33,4 +33,4 @@ class OkexParamsException(OkexException):
         self.message = message
 
     def __str__(self):
-        return f'OkexParamsException: {self.message}'
+        return f"OkexParamsException: {self.message}"

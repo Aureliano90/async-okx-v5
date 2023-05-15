@@ -6,17 +6,17 @@ from .types import *
 from .utils import RateLimiter
 import logging
 
-logger = logging.getLogger('PublicAPI')
+logger = logging.getLogger("PublicAPI")
 logger.setLevel(logging.DEBUG)
 
 
 class PublicAPI(Client):
     def __init__(self, use_server_time=False, test=False, **kwargs):
-        super(PublicAPI, self).__init__('', '', '', use_server_time, test, **kwargs)
+        super(PublicAPI, self).__init__("", "", "", use_server_time, test, **kwargs)
 
     GET_INSTRUMENTS_SEMAPHORE = dict()
 
-    async def get_instruments(self, instType: InstType, instFamily='') -> List[dict]:
+    async def get_instruments(self, instType: InstType, instFamily="") -> List[dict]:
         """获取所有可交易产品的信息列表
 
         GET /api/v5/public/instruments?instType=SWAP
@@ -28,15 +28,15 @@ class PublicAPI(Client):
         """
         params = dict(instType=instType)
         if instFamily:
-            params['instFamily'] = instFamily
+            params["instFamily"] = instFamily
         if instType not in PublicAPI.GET_INSTRUMENTS_SEMAPHORE.keys():
             PublicAPI.GET_INSTRUMENTS_SEMAPHORE[instType] = RateLimiter(20, 2)
         async with PublicAPI.GET_INSTRUMENTS_SEMAPHORE[instType]:
             res = await self._request_with_params(GET, GET_INSTRUMENTS, params)
-        assert res['code'] == '0', f"{GET_INSTRUMENTS}, msg={res['msg']}"
-        return res['data']
+        assert res["code"] == "0", f"{GET_INSTRUMENTS}, msg={res['msg']}"
+        return res["data"]
 
-    async def get_specific_instrument(self, instType: InstType, instId: str, uly='') -> dict:
+    async def get_specific_instrument(self, instType: InstType, instId: str, uly="") -> dict:
         """获取单个可交易产品的信息
 
         GET /api/v5/public/instruments?instType=SWAP&instId=BTC-USDT-SWAP
@@ -47,14 +47,14 @@ class PublicAPI(Client):
         """
         params = dict(instType=instType, instId=instId)
         if uly:
-            params['uly'] = uly
+            params["uly"] = uly
         if instType not in PublicAPI.GET_INSTRUMENTS_SEMAPHORE.keys():
             PublicAPI.GET_INSTRUMENTS_SEMAPHORE[instType] = RateLimiter(20, 2)
         async with PublicAPI.GET_INSTRUMENTS_SEMAPHORE[instType]:
             res = await self._request_with_params(GET, GET_INSTRUMENTS, params)
-        if res['code'] == '51001':
-            raise OkexRequestException(res['msg'])
-        return res['data'][0]
+        if res["code"] == "51001":
+            raise OkexRequestException(res["msg"])
+        return res["data"][0]
 
     async def get_funding_time(self, instId: str) -> FundingRateResponse:
         """获取当前资金费率
@@ -67,15 +67,11 @@ class PublicAPI(Client):
         """
         params = dict(instId=instId)
         res = await self._request_with_params(GET, FUNDING_RATE, params)
-        assert res['code'] == '0', f"{FUNDING_RATE}, msg={res['msg']}"
-        return res['data'][0]
+        assert res["code"] == "0", f"{FUNDING_RATE}, msg={res['msg']}"
+        return res["data"][0]
 
     async def get_historical_funding_rate(
-            self,
-            instId: str,
-            after='',
-            before='',
-            limit=''
+        self, instId: str, after="", before="", limit=""
     ) -> List[FundingRateResponse]:
         """获取最近3个月的历史资金费率
 
@@ -90,12 +86,12 @@ class PublicAPI(Client):
         """
         params = dict(instId=instId, after=after, before=before, limit=limit)
         res = await self._request_with_params(GET, FUNDING_RATE_HISTORY, params)
-        assert res['code'] == '0', f"{FUNDING_RATE_HISTORY}, msg={res['msg']}"
-        return res['data']
+        assert res["code"] == "0", f"{FUNDING_RATE_HISTORY}, msg={res['msg']}"
+        return res["data"]
 
     GET_TICKERS_SEMAPHORE = RateLimiter(20, 2)
 
-    async def get_tickers(self, instType: InstType, uly='') -> List[TickerResponse]:
+    async def get_tickers(self, instType: InstType, uly="") -> List[TickerResponse]:
         """获取所有产品行情信息
 
         GET /api/v5/market/tickers?instType=SWAP 限速： 20次/2s
@@ -105,11 +101,11 @@ class PublicAPI(Client):
         """
         params = dict(instType=instType)
         if uly:
-            params['uly'] = uly
+            params["uly"] = uly
         while True:
             try:
                 async with self.GET_TICKERS_SEMAPHORE:
-                    return (await self._request_with_params(GET, GET_TICKERS, params))['data']
+                    return (await self._request_with_params(GET, GET_TICKERS, params))["data"]
             except OkexAPIException:
                 await asyncio.sleep(10)
 
@@ -126,13 +122,13 @@ class PublicAPI(Client):
         while True:
             try:
                 async with self.GET_TICKER_SEMAPHORE:
-                    return (await self._request_with_params(GET, GET_TICKER, params))['data'][0]
+                    return (await self._request_with_params(GET, GET_TICKER, params))["data"][0]
             except OkexAPIException:
                 await asyncio.sleep(10)
 
     GET_CANDLES_SEMAPHORE = RateLimiter(40, 2)
 
-    async def get_candles(self, instId: str, bar: Bar = '4H', after='', before='', limit='') -> List[Candle]:
+    async def get_candles(self, instId: str, bar: Bar = "4H", after="", before="", limit="") -> List[Candle]:
         """获取K线数据。K线数据按请求的粒度分组返回，K线数据每个粒度最多可获取最近1440条
 
         GET /api/v5/market/candles 限速： 40次/2s
@@ -146,12 +142,12 @@ class PublicAPI(Client):
         params = dict(instId=instId, bar=bar, after=after, before=before, limit=limit)
         async with self.GET_CANDLES_SEMAPHORE:
             res = await self._request_with_params(GET, GET_CANDLES, params)
-        assert res['code'] == '0', f"{GET_CANDLES}, msg={res['msg']}"
-        return [Candle(*candle) for candle in res['data']]
+        assert res["code"] == "0", f"{GET_CANDLES}, msg={res['msg']}"
+        return [Candle(*candle) for candle in res["data"]]
 
     HISTORY_CANDLES_SEMAPHORE = RateLimiter(20, 2)
 
-    async def history_candles(self, instId: str, bar: Bar = '4H', after='', before='', limit='') -> List[List]:
+    async def history_candles(self, instId: str, bar: Bar = "4H", after="", before="", limit="") -> List[List]:
         """获取最近几年的历史k线数据
 
         GET /api/v5/market/history-candles 限速： 20次/2s
@@ -165,5 +161,5 @@ class PublicAPI(Client):
         params = dict(instId=instId, bar=bar, after=after, before=before, limit=limit)
         async with self.HISTORY_CANDLES_SEMAPHORE:
             res = await self._request_with_params(GET, HISTORY_CANDLES, params)
-        assert res['code'] == '0', f"{HISTORY_CANDLES}, msg={res['msg']}"
-        return res['data']
+        assert res["code"] == "0", f"{HISTORY_CANDLES}, msg={res['msg']}"
+        return res["data"]

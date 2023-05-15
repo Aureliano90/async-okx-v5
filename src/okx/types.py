@@ -24,7 +24,7 @@ class AccountConfigResponse(TypedDict):
 
 
 class PosModeResponse(TypedDict):
-    posMode: Literal['long_short_mode', 'net_mode']
+    posMode: Literal["long_short_mode", "net_mode"]
 
 
 class AssetBalanceResponse(TypedDict):
@@ -34,22 +34,26 @@ class AssetBalanceResponse(TypedDict):
     :param frozenBal: 冻结余额
     :param availBal: 可用余额
     """
+
     ccy: str
     bal: str
     frozenBal: str
     availBal: str
 
 
-AssetTransferResponse = TypedDict('AssetTransferResponse', {
-    'transId': str,  # 划转 ID
-    'ccy': str,  # 划转币种
-    'from': str,  # 转出账户
-    'amt': str,  # 划转量
-    'to': str,  # 转入账户
-    'clientId': str  # 客户自定义ID
-})
+AssetTransferResponse = TypedDict(
+    "AssetTransferResponse",
+    {
+        "transId": str,  # 划转 ID
+        "ccy": str,  # 划转币种
+        "from": str,  # 转出账户
+        "amt": str,  # 划转量
+        "to": str,  # 转入账户
+        "clientId": str,  # 客户自定义ID
+    },
+)
 
-InstType = Literal['SPOT', 'MARGIN', 'SWAP', 'FUTURES', 'OPTION', 'ANY']
+InstType = Literal["SPOT", "MARGIN", "SWAP", "FUTURES", "OPTION", "ANY"]
 
 
 class TickerResponse(TypedDict):
@@ -75,6 +79,7 @@ class TickerResponse(TypedDict):
     :param sodUtc8: UTC+8 时开盘价
     :param ts: 数据产生时间，Unix时间戳的毫秒数格式，如 1597026383085
     """
+
     instType: InstType
     instId: str
     last: str
@@ -93,7 +98,7 @@ class TickerResponse(TypedDict):
     ts: str
 
 
-Bar = Literal['1m', '3m', '5m', '15m', '30m', '1H', '2H', '4H', '6H', '12H', '1D', '1W', '1M', '3M', '6M', '1Y']
+Bar = Literal["1m", "3m", "5m", "15m", "30m", "1H", "2H", "4H", "6H", "12H", "1D", "1W", "1M", "3M", "6M", "1Y"]
 
 
 class Candle(NamedTuple):
@@ -115,6 +120,7 @@ class Candle(NamedTuple):
     :param confirm: K线状态
         0 代表 K 线未完结，1 代表 K 线已完结。
     """
+
     ts: str
     o: str
     h: str
@@ -135,7 +141,8 @@ class FundingRateResponse(TypedDict):
     :param nextFundingRate: 下一期预测资金费率
     :param nextFundingTime: 下一期资金费时间，Unix时间戳的毫秒数格式，如 1622851200000
     """
-    instType: Literal['SWAP']
+
+    instType: Literal["SWAP"]
     instId: str
     fundingRate: str
     fundingTime: str

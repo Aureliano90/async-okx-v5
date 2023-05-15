@@ -5,7 +5,7 @@ from datetime import datetime
 import json
 import logging
 
-logger = logging.getLogger('Client')
+logger = logging.getLogger("Client")
 logger.setLevel(logging.DEBUG)
 
 MAX_RETRY = 100
@@ -29,11 +29,11 @@ class Client:
         async with self.client.get(url) as response:
             res_json = await response.json()
             if response.status == 200:
-                t = datetime.utcfromtimestamp(int(res_json['data'][0]['ts']) / 1000)
-                t = t.isoformat('T', 'milliseconds')
-                return f'{t}Z'
+                t = datetime.utcfromtimestamp(int(res_json["data"][0]["ts"]) / 1000)
+                t = t.isoformat("T", "milliseconds")
+                return f"{t}Z"
             else:
-                return ''
+                return ""
 
     async def _request(self, method, request_path, params):
         if method == c.GET:
@@ -53,12 +53,12 @@ class Client:
                     # 获取本地时间
                     timestamp = utils.get_timestamp()
 
-                body = json.dumps(params) if method == c.POST else ''
+                body = json.dumps(params) if method == c.POST else ""
                 sign = utils.sign(utils.pre_hash(timestamp, method, request_path, str(body)), self.API_SECRET_KEY)
-                header = utils.get_header(self.API_KEY, sign.decode('utf8'), timestamp, self.PASSPHRASE)
+                header = utils.get_header(self.API_KEY, sign.decode("utf8"), timestamp, self.PASSPHRASE)
 
                 if self.test:
-                    header['x-simulated-trading'] = '1'
+                    header["x-simulated-trading"] = "1"
 
                 # send request
                 if method == c.GET:
@@ -74,7 +74,7 @@ class Client:
                 else:
                     raise ValueError
             except (ClientError, asyncio.TimeoutError) as exc:
-                logger.debug('Network error', exc_info=exc)
+                logger.debug("Network error", exc_info=exc)
                 await asyncio.sleep(backoff)
                 retry += 1
                 backoff *= BACKOFF_MULTIPLIER
@@ -83,8 +83,8 @@ class Client:
                 async with response:
                     status = response.status
                     # Cloudflare error
-                    if str(status).startswith('5'):
-                        logger.debug(f'Cloudflare error {response}')
+                    if str(status).startswith("5"):
+                        logger.debug(f"Cloudflare error {response}")
                         await asyncio.sleep(backoff)
                         retry += 1
                         backoff *= BACKOFF_MULTIPLIER
@@ -96,14 +96,14 @@ class Client:
                         continue
                     except ValueError:
                         text = await response.text()
-                        if 'cloudflare' in text:
+                        if "cloudflare" in text:
                             await asyncio.sleep(backoff)
                             retry += 1
                             backoff *= BACKOFF_MULTIPLIER
                             continue
-                        raise exceptions.OkexRequestException(f'Invalid Response: {text}')
+                        raise exceptions.OkexRequestException(f"Invalid Response: {text}")
                     # Endpoint request timeout
-                    if json_res.get('code') == '50004':
+                    if json_res.get("code") == "50004":
                         retry += 1
                         await asyncio.sleep(2)
                         continue
@@ -116,9 +116,9 @@ class Client:
                     success = True
 
                     # exception handle
-                    if not str(status).startswith('2'):
+                    if not str(status).startswith("2"):
                         logger.error(f"{json_res['code']}: {json_res['msg']}")
-                        logger.error(f'Client error {status}: {request_path}')
+                        logger.error(f"Client error {status}: {request_path}")
                         raise exceptions.OkexAPIException(status, text, json_res)
         return json_res
 

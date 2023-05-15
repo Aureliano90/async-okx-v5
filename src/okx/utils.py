@@ -8,8 +8,7 @@ from . import consts as c
 
 
 class RateLimiter(asyncio.Semaphore):
-    """A custom semaphore to be used with REST API with velocity limit under asyncio
-    """
+    """A custom semaphore to be used with REST API with velocity limit under asyncio"""
 
     def __init__(self, concurrency: int, interval: int):
         """控制REST API访问速率
@@ -26,7 +25,7 @@ class RateLimiter(asyncio.Semaphore):
         self._count = concurrency
 
     def __repr__(self):
-        return f'Rate limit: {self._concurrency} inquiries/{self._interval}s'
+        return f"Rate limit: {self._concurrency} inquiries/{self._interval}s"
 
     async def acquire(self):
         await super().acquire()
@@ -45,13 +44,13 @@ class RateLimiter(asyncio.Semaphore):
 
 
 def sign(message, secret_key):
-    mac = hmac.new(bytes(secret_key, encoding='utf8'), bytes(message, encoding='utf8'), digestmod='sha256')
+    mac = hmac.new(bytes(secret_key, encoding="utf8"), bytes(message, encoding="utf8"), digestmod="sha256")
     d = mac.digest()
     return base64.b64encode(d)
 
 
 def pre_hash(timestamp, method, request_path, body):
-    return f'{timestamp}{str.upper(method)}{request_path}{body}'
+    return f"{timestamp}{str.upper(method)}{request_path}{body}"
 
 
 def get_header(api_key, header_sign, timestamp, passphrase):
@@ -60,24 +59,24 @@ def get_header(api_key, header_sign, timestamp, passphrase):
         c.OK_ACCESS_KEY: api_key,
         c.OK_ACCESS_SIGN: header_sign,
         c.OK_ACCESS_TIMESTAMP: str(timestamp),
-        c.OK_ACCESS_PASSPHRASE: passphrase
+        c.OK_ACCESS_PASSPHRASE: passphrase,
     }
 
 
 def parse_params_to_str(params):
-    return '' if not params else '?' + '&'.join([f'{key}={value}' for key, value in params.items()])
+    return "" if not params else "?" + "&".join([f"{key}={value}" for key, value in params.items()])
 
 
 def get_timestamp():
     now = datetime.datetime.utcnow()
-    t = now.isoformat('T', 'milliseconds')
-    return f'{t}Z'
+    t = now.isoformat("T", "milliseconds")
+    return f"{t}Z"
 
 
 def signature(timestamp, method, request_path, body, secret_key):
-    if str(body) == '{}' or str(body) == 'None':
-        body = ''
-    message = f'{timestamp}{method.upper()}{request_path}{body}'
-    mac = hmac.new(bytes(secret_key, encoding='utf8'), bytes(message, encoding='utf8'), digestmod='sha256')
+    if str(body) == "{}" or str(body) == "None":
+        body = ""
+    message = f"{timestamp}{method.upper()}{request_path}{body}"
+    mac = hmac.new(bytes(secret_key, encoding="utf8"), bytes(message, encoding="utf8"), digestmod="sha256")
     d = mac.digest()
     return base64.b64encode(d)

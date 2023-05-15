@@ -5,7 +5,7 @@ from .utils import RateLimiter
 import logging
 import asyncio
 
-logger = logging.getLogger('TradeAPI')
+logger = logging.getLogger("TradeAPI")
 logger.setLevel(logging.DEBUG)
 
 
@@ -15,7 +15,7 @@ class TradeAPI(Client):
 
     SPOT_MARGIN_SEMAPHORE = RateLimiter(60, 2)
 
-    async def take_spot_order(self, instId, side, order_type, size, price='', tgtCcy='', client_oid='') -> dict:
+    async def take_spot_order(self, instId, side, order_type, size, price="", tgtCcy="", client_oid="") -> dict:
         """币币下单
 
         POST /api/v5/trade/order 限速： 60次/2s
@@ -31,18 +31,27 @@ class TradeAPI(Client):
         :param tgtCcy: 市价单委托数量的类型 base_ccy: 交易货币 ；quote_ccy：计价货币
         :param client_oid: 客户自定义订单ID
         """
-        params = dict(instId=instId, tdMode='cash', side=side, ordType=order_type, sz=size, px=price, tgtCcy=tgtCcy,
-                      clOrdId=client_oid)
+        params = dict(
+            instId=instId,
+            tdMode="cash",
+            side=side,
+            ordType=order_type,
+            sz=size,
+            px=price,
+            tgtCcy=tgtCcy,
+            clOrdId=client_oid,
+        )
         async with self.SPOT_MARGIN_SEMAPHORE:
             res = await self._request_with_params(POST, TRADE_ORDER, params)
-        order = res['data'][0]
-        if res['code'] == '0':
+        order = res["data"][0]
+        if res["code"] == "0":
             return order
         else:
-            return dict(ordId='-1', code=order['sCode'], msg=order['sMsg'])
+            return dict(ordId="-1", code=order["sCode"], msg=order["sMsg"])
 
-    async def take_margin_order(self, instId, side, order_type, size, price='', client_oid='',
-                                reduceOnly=False) -> dict:
+    async def take_margin_order(
+        self, instId, side, order_type, size, price="", client_oid="", reduceOnly=False
+    ) -> dict:
         """币币杠杆下单
 
         POST /api/v5/trade/order 限速： 60次/2s
@@ -58,19 +67,28 @@ class TradeAPI(Client):
         :param client_oid: 客户自定义订单ID
         :param reduceOnly: 只减仓
         """
-        params = dict(instId=instId, tdMode='cross', ccy='USDT', side=side, ordType=order_type, sz=size, px=price,
-                      clOrdId=client_oid, reduceOnly=reduceOnly)
+        params = dict(
+            instId=instId,
+            tdMode="cross",
+            ccy="USDT",
+            side=side,
+            ordType=order_type,
+            sz=size,
+            px=price,
+            clOrdId=client_oid,
+            reduceOnly=reduceOnly,
+        )
         async with self.SPOT_MARGIN_SEMAPHORE:
             res = await self._request_with_params(POST, TRADE_ORDER, params)
-        order = res['data'][0]
-        if res['code'] == '0':
+        order = res["data"][0]
+        if res["code"] == "0":
             return order
         else:
-            return dict(ordId='-1', code=order['sCode'], msg=order['sMsg'])
+            return dict(ordId="-1", code=order["sCode"], msg=order["sMsg"])
 
     DERIVATIVE_SEMAPHORE = RateLimiter(60, 2)
 
-    async def take_swap_order(self, instId, side, order_type, size, price='', client_oid='', reduceOnly=False) -> dict:
+    async def take_swap_order(self, instId, side, order_type, size, price="", client_oid="", reduceOnly=False) -> dict:
         """合约下单
 
         POST /api/v5/trade/order 限速： 60次/2s
@@ -86,15 +104,24 @@ class TradeAPI(Client):
         :param client_oid: 客户自定义订单ID
         :param reduceOnly: 只减仓
         """
-        params = dict(instId=instId, tdMode='isolated', ccy='USDT', side=side, ordType=order_type, sz=size, px=price,
-                      clOrdId=client_oid, reduceOnly=reduceOnly)
+        params = dict(
+            instId=instId,
+            tdMode="isolated",
+            ccy="USDT",
+            side=side,
+            ordType=order_type,
+            sz=size,
+            px=price,
+            clOrdId=client_oid,
+            reduceOnly=reduceOnly,
+        )
         async with self.DERIVATIVE_SEMAPHORE:
             res = await self._request_with_params(POST, TRADE_ORDER, params)
-        order = res['data'][0]
-        if res['code'] == '0':
+        order = res["data"][0]
+        if res["code"] == "0":
             return order
         else:
-            return dict(ordId='-1', code=order['sCode'], msg=order['sMsg'])
+            return dict(ordId="-1", code=order["sCode"], msg=order["sMsg"])
 
     BATCH_ORDER_SEMAPHORE = RateLimiter(15, 2)
 
@@ -113,19 +140,19 @@ class TradeAPI(Client):
         # :param clOrdId: 客户自定义订单ID
         # :param reduceOnly: 只减仓
         for order in orders:
-            assert 'instId' in order
-            assert 'tdMode' in order
-            assert 'side' in order
-            assert 'ordType' in order
-            assert 'sz' in order
+            assert "instId" in order
+            assert "tdMode" in order
+            assert "side" in order
+            assert "ordType" in order
+            assert "sz" in order
         n = len(orders) // 20 + 1
         batches = []
         for i in range(n):
             if i < n - 1:
-                batch = self._request_with_params(POST, BATCH_ORDER, orders[i * 20:(i + 1) * 20])
+                batch = self._request_with_params(POST, BATCH_ORDER, orders[i * 20 : (i + 1) * 20])
             else:
                 if i * 20 < len(orders):
-                    batch = self._request_with_params(POST, BATCH_ORDER, orders[i * 20:])
+                    batch = self._request_with_params(POST, BATCH_ORDER, orders[i * 20 :])
                 else:
                     break
             batches.append(batch)
@@ -136,16 +163,16 @@ class TradeAPI(Client):
         orders = []
         for task in tasks:
             batch = await task
-            assert batch['code'] == '0', f"{BATCH_ORDER}, msg={batch['msg']}"
+            assert batch["code"] == "0", f"{BATCH_ORDER}, msg={batch['msg']}"
             # if batch['code'] != '0':
             #     for order in batch['data']:
             #         print(order)
-            orders.extend(batch['data'])
+            orders.extend(batch["data"])
         return orders
 
     ORDER_INFO_SEMAPHORE = RateLimiter(60, 2)
 
-    async def get_order_info(self, instId, order_id='', client_oid='') -> dict:
+    async def get_order_info(self, instId, order_id="", client_oid="") -> dict:
         """获取订单信息
 
         GET /api/v5/trade/order 限速： 60次/2s
@@ -158,12 +185,12 @@ class TradeAPI(Client):
         params = dict(ordId=order_id, instId=instId) if order_id else dict(clOrdId=client_oid, instId=instId)
         async with self.ORDER_INFO_SEMAPHORE:
             res = await self._request_with_params(GET, TRADE_ORDER, params)
-        assert res['code'] == '0', f"{TRADE_ORDER}, msg={res['msg']}"
-        return res['data'][0]
+        assert res["code"] == "0", f"{TRADE_ORDER}, msg={res['msg']}"
+        return res["data"][0]
 
     CANCEL_ORDER_SEMAPHORE = RateLimiter(60, 2)
 
-    async def cancel_order(self, instId, order_id='', client_oid='') -> dict:
+    async def cancel_order(self, instId, order_id="", client_oid="") -> dict:
         """撤销之前下的未完成订单
 
         POST /api/v5/trade/cancel-order 限速： 60次/2s
@@ -176,11 +203,11 @@ class TradeAPI(Client):
         params = dict(ordId=order_id, instId=instId) if order_id else dict(clOrdId=client_oid, instId=instId)
         async with self.CANCEL_ORDER_SEMAPHORE:
             res = await self._request_with_params(POST, CANCEL_ORDER, params)
-        order = res['data'][0]
-        if res['code'] == '0':
+        order = res["data"][0]
+        if res["code"] == "0":
             return order
         else:
-            return dict(ordId='-1', code=order['sCode'], msg=order['sMsg'])
+            return dict(ordId="-1", code=order["sCode"], msg=order["sMsg"])
 
     BATCH_CANCEL_SEMAPHORE = RateLimiter(15, 2)
 
@@ -191,16 +218,16 @@ class TradeAPI(Client):
         """
         assert len(orders) <= 300
         for order in orders:
-            assert 'instId' in order
-            assert 'ordId' in order or 'clOrdId' in order
+            assert "instId" in order
+            assert "ordId" in order or "clOrdId" in order
         n = len(orders) // 20 + 1
         batches = []
         for i in range(n):
             if i < n - 1:
-                batch = self._request_with_params(POST, BATCH_CANCEL, orders[i * 20:(i + 1) * 20])
+                batch = self._request_with_params(POST, BATCH_CANCEL, orders[i * 20 : (i + 1) * 20])
             else:
                 if i * 20 < len(orders):
-                    batch = self._request_with_params(POST, BATCH_CANCEL, orders[i * 20:])
+                    batch = self._request_with_params(POST, BATCH_CANCEL, orders[i * 20 :])
                 else:
                     break
             batches.append(batch)
@@ -211,13 +238,13 @@ class TradeAPI(Client):
         orders = []
         for task in tasks:
             batch = await task
-            assert batch['code'] == '0', f"{BATCH_CANCEL}, msg={batch['msg']}"
-            orders.extend(batch['data'])
+            assert batch["code"] == "0", f"{BATCH_CANCEL}, msg={batch['msg']}"
+            orders.extend(batch["data"])
         return orders
 
     PENDING_ORDER_SEMAPHORE = RateLimiter(60, 2)
 
-    async def pending_order(self, instType='', uly='', instId='', ordType='', state='') -> List[dict]:
+    async def pending_order(self, instType="", uly="", instId="", ordType="", state="") -> List[dict]:
         """获取当前账户下所有未成交订单信息
 
         GET /api/v5/trade/orders-pending 限速： 60次/2s
@@ -235,13 +262,14 @@ class TradeAPI(Client):
         params = dict(instType=instType, uly=uly, instId=instId, ordType=ordType, state=state)
         async with self.PENDING_ORDER_SEMAPHORE:
             temp = await self._request_with_params(GET, PENDING_ORDER, params)
-        assert temp['code'] == '0', f"{PENDING_ORDER}, msg={temp['msg']}"
-        res = temp['data']
+        assert temp["code"] == "0", f"{PENDING_ORDER}, msg={temp['msg']}"
+        res = temp["data"]
         while len(temp) == 100:
-            params = dict(instType=instType, uly=uly, instId=instId, ordType=ordType, state=state,
-                          after=temp[100 - 1]['ordId'])
+            params = dict(
+                instType=instType, uly=uly, instId=instId, ordType=ordType, state=state, after=temp[100 - 1]["ordId"]
+            )
             async with self.PENDING_ORDER_SEMAPHORE:
                 temp = await self._request_with_params(GET, PENDING_ORDER, params)
-            assert temp['code'] == '0', f"{PENDING_ORDER}, msg={temp['msg']}"
-            res.extend(temp['data'])
+            assert temp["code"] == "0", f"{PENDING_ORDER}, msg={temp['msg']}"
+            res.extend(temp["data"])
         return res

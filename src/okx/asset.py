@@ -4,7 +4,7 @@ from .types import *
 from .utils import RateLimiter
 import logging
 
-logger = logging.getLogger('AssetAPI')
+logger = logging.getLogger("AssetAPI")
 logger.setLevel(logging.DEBUG)
 
 
@@ -23,16 +23,16 @@ class AssetAPI(Client):
         """
         if not type(ccy) is str:
             assert len(ccy) <= 20
-            ccy = ','.join(ccy)
+            ccy = ",".join(ccy)
         params = dict(ccy=ccy)
         async with self.ASSET_BALANCE_SEMAPHORE:
             res = await self._request_with_params(GET, ASSET_BALANCE, params)
-        assert res['code'] == '0', f"{ASSET_BALANCE}, msg={res['msg']}"
-        return res['data'][0]
+        assert res["code"] == "0", f"{ASSET_BALANCE}, msg={res['msg']}"
+        return res["data"][0]
 
     ASSET_TRANSFER_SEMAPHORE = dict()
 
-    async def transfer(self, ccy, amt, account_from, account_to, instId='', toInstId='') -> AssetTransferResponse:
+    async def transfer(self, ccy, amt, account_from, account_to, instId="", toInstId="") -> AssetTransferResponse:
         """资金划转
 
         POST /api/v5/asset/transfer
@@ -46,17 +46,17 @@ class AssetAPI(Client):
         :param instId:
         :param toInstId:
         """
-        params = {'ccy': ccy, 'amt': amt, 'from': account_from, 'to': account_to}
+        params = {"ccy": ccy, "amt": amt, "from": account_from, "to": account_to}
         if instId:
-            params['instId'] = instId
+            params["instId"] = instId
         if toInstId:
-            params['toInstId'] = toInstId
+            params["toInstId"] = toInstId
         if ccy not in AssetAPI.ASSET_TRANSFER_SEMAPHORE.keys():
             AssetAPI.ASSET_TRANSFER_SEMAPHORE[ccy] = RateLimiter(1, 1)
         async with AssetAPI.ASSET_TRANSFER_SEMAPHORE[ccy]:
             res = await self._request_with_params(POST, ASSET_TRANSFER, params)
-        if res['code'] == '0':
-            return res['data'][0]
+        if res["code"] == "0":
+            return res["data"][0]
         else:
             logger.warning(f"{ASSET_TRANSFER}, msg={res['msg']}")
             raise Exception(f"{ASSET_TRANSFER}, msg={res['msg']}")

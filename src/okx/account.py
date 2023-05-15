@@ -4,7 +4,7 @@ from .types import *
 from .utils import RateLimiter
 import logging
 
-logger = logging.getLogger('AccountAPI')
+logger = logging.getLogger("AccountAPI")
 logger.setLevel(logging.DEBUG)
 
 
@@ -21,12 +21,12 @@ class AccountAPI(Client):
         """
         async with self.ACCOUNT_CONFIG_SEMAPHORE:
             res = await self._request_without_params(GET, ACCOUNT_CONFIG)
-        assert res['code'] == '0', f"{ACCOUNT_CONFIG}, msg={res['msg']}"
-        return res['data'][0]
+        assert res["code"] == "0", f"{ACCOUNT_CONFIG}, msg={res['msg']}"
+        return res["data"][0]
 
     POSITION_MODE_SEMAPHORE = RateLimiter(5, 2)
 
-    async def set_position_mode(self, posMode: Literal['long_short_mode', 'net_mode']) -> PosModeResponse:
+    async def set_position_mode(self, posMode: Literal["long_short_mode", "net_mode"]) -> PosModeResponse:
         """设置持仓模式
 
         POST /api/v5/account/set-position-mode 限速：5次/2s
@@ -36,16 +36,13 @@ class AccountAPI(Client):
         params = dict(posMode=posMode)
         async with self.POSITION_MODE_SEMAPHORE:
             res = await self._request_with_params(POST, POSITION_MODE, params)
-        assert res['code'] == '0', f"{POSITION_MODE}, msg={res['msg']}"
-        return res['data'][0]
+        assert res["code"] == "0", f"{POSITION_MODE}, msg={res['msg']}"
+        return res["data"][0]
 
     ACCOUNT_POSITION_SEMAPHORE = RateLimiter(10, 2)
 
     async def get_positions(
-            self,
-            instType: Literal['MARGIN', 'SWAP', 'FUTURES', 'OPTION'] = None,
-            instId=None,
-            posId=None
+        self, instType: Literal["MARGIN", "SWAP", "FUTURES", "OPTION"] = None, instId=None, posId=None
     ) -> List[Dict]:
         """查看持仓信息
 
@@ -60,19 +57,19 @@ class AccountAPI(Client):
         elif instId:
             if not type(instId) is str:
                 assert len(instId) <= 10
-                instId = ','.join(instId)
+                instId = ",".join(instId)
             params = dict(instId=instId)
         else:
             if not type(posId) is str:
                 assert len(posId) <= 20
-                posId = ','.join(posId)
+                posId = ",".join(posId)
             params = dict(posId=posId)
         async with self.ACCOUNT_POSITION_SEMAPHORE:
             res = await self._request_with_params(GET, ACCOUNT_POSITION, params)
-        assert res['code'] == '0', f"{ACCOUNT_POSITION}, msg={res['msg']}"
-        return res['data']
+        assert res["code"] == "0", f"{ACCOUNT_POSITION}, msg={res['msg']}"
+        return res["data"]
 
-    async def get_specific_position(self, instId='', posId='') -> List[Dict]:
+    async def get_specific_position(self, instId="", posId="") -> List[Dict]:
         """查看持仓信息
 
         GET /api/v5/account/positions?instId=BTC-USDT
@@ -83,8 +80,8 @@ class AccountAPI(Client):
         params = dict(instId=instId) if instId else dict(posId=posId)
         async with self.ACCOUNT_POSITION_SEMAPHORE:
             res = await self._request_with_params(GET, ACCOUNT_POSITION, params)
-        assert res['code'] == '0', f"{ACCOUNT_POSITION}, msg={res['msg']}"
-        return res['data']
+        assert res["code"] == "0", f"{ACCOUNT_POSITION}, msg={res['msg']}"
+        return res["data"]
 
     ACCOUNT_BALANCE_SEMAPHORE = RateLimiter(10, 2)
 
@@ -95,8 +92,8 @@ class AccountAPI(Client):
         """
         async with self.ACCOUNT_BALANCE_SEMAPHORE:
             res = await self._request_without_params(GET, ACCOUNT_BALANCE)
-        assert res['code'] == '0', f"{ACCOUNT_BALANCE}, msg={res['msg']}"
-        return res['data'][0]
+        assert res["code"] == "0", f"{ACCOUNT_BALANCE}, msg={res['msg']}"
+        return res["data"][0]
 
     async def get_coin_balance(self, ccy) -> Dict:
         """获取账户中单币种余额
@@ -107,16 +104,16 @@ class AccountAPI(Client):
         """
         if not type(ccy) is str:
             assert len(ccy) <= 20
-            ccy = ','.join(ccy)
+            ccy = ",".join(ccy)
         params = dict(ccy=ccy)
         async with self.ACCOUNT_BALANCE_SEMAPHORE:
             res = await self._request_with_params(GET, ACCOUNT_BALANCE, params)
-        assert res['code'] == '0', f"{ACCOUNT_BALANCE}, msg={res['msg']}"
-        return res['data'][0]
+        assert res["code"] == "0", f"{ACCOUNT_BALANCE}, msg={res['msg']}"
+        return res["data"][0]
 
     TRADE_FEE_SEMAPHORE = RateLimiter(5, 2)
 
-    async def get_trade_fee(self, instType, instId='', uly='', category='') -> Dict:
+    async def get_trade_fee(self, instType, instId="", uly="", category="") -> Dict:
         """获取当前账户交易手续费费率
 
         GET /api/v5/account/trade-fee 限速：5次/2s
@@ -127,11 +124,11 @@ class AccountAPI(Client):
         :param category: 手续费档位
         """
         params = dict(instId=instId) if instId else dict(uly=uly) if uly else dict(category=category)
-        params['instType'] = instType
+        params["instType"] = instType
         async with self.TRADE_FEE_SEMAPHORE:
             res = await self._request_with_params(GET, TRADE_FEE, params)
-        assert res['code'] == '0', f"{TRADE_FEE}, msg={res['msg']}"
-        return res['data'][0]
+        assert res["code"] == "0", f"{TRADE_FEE}, msg={res['msg']}"
+        return res["data"][0]
 
     GET_LEVERAGE_SEMAPHORE = RateLimiter(20, 2)
 
@@ -146,12 +143,12 @@ class AccountAPI(Client):
         params = dict(instId=instId, mgnMode=mgnMode)
         async with self.GET_LEVERAGE_SEMAPHORE:
             res = await self._request_with_params(GET, GET_LEVERAGE, params)
-        assert res['code'] == '0', f"{GET_LEVERAGE}, msg={res['msg']}"
-        return res['data'][0]
+        assert res["code"] == "0", f"{GET_LEVERAGE}, msg={res['msg']}"
+        return res["data"][0]
 
     SET_LEVERAGE_SEMAPHORE = RateLimiter(20, 2)
 
-    async def set_leverage(self, lever, mgnMode, instId='', ccy='', posSide='') -> Dict:
+    async def set_leverage(self, lever, mgnMode, instId="", ccy="", posSide="") -> Dict:
         """设置杠杆倍数
 
         POST /api/v5/account/set-leverage 限速：20次/2s
@@ -166,15 +163,16 @@ class AccountAPI(Client):
             params = dict(lever=lever, mgnMode=mgnMode, instId=instId)
         else:
             params = dict(lever=lever, mgnMode=mgnMode, ccy=ccy)
-        if posSide: params['posSide'] = posSide
+        if posSide:
+            params["posSide"] = posSide
         async with self.SET_LEVERAGE_SEMAPHORE:
             res = await self._request_with_params(POST, SET_LEVERAGE, params)
-        assert res['code'] == '0', f"{SET_LEVERAGE}, msg={res['msg']}"
-        return res['data'][0]
+        assert res["code"] == "0", f"{SET_LEVERAGE}, msg={res['msg']}"
+        return res["data"][0]
 
     MAX_SIZE_SEMAPHORE = RateLimiter(20, 2)
 
-    async def get_max_size(self, instId, tdMode, ccy='', px='', leverage='') -> Dict:
+    async def get_max_size(self, instId, tdMode, ccy="", px="", leverage="") -> Dict:
         """获取最大可买卖/开仓数量
 
         GET /api/v5/account/max-size 限速：20次/2s
@@ -186,18 +184,22 @@ class AccountAPI(Client):
         :param leverage: 开仓杠杆倍数
         """
         params = dict(instId=instId, tdMode=tdMode)
-        if ccy: params['ccy'] = ccy
-        if ccy: params['px'] = px
-        if ccy: params['leverage'] = leverage
+        if ccy:
+            params["ccy"] = ccy
+        if ccy:
+            params["px"] = px
+        if ccy:
+            params["leverage"] = leverage
         async with self.MAX_SIZE_SEMAPHORE:
             res = await self._request_with_params(GET, MAX_SIZE, params)
-        assert res['code'] == '0', f"{MAX_SIZE}, msg={res['msg']}"
-        return res['data'][0]
+        assert res["code"] == "0", f"{MAX_SIZE}, msg={res['msg']}"
+        return res["data"][0]
 
     GET_LEDGER_SEMAPHORE = RateLimiter(5, 1)
 
-    async def get_ledger(self, instType, ccy, mgnMode='', ctType='', type='', subType='', after='', before='',
-                         limit='') -> List[Dict]:
+    async def get_ledger(
+        self, instType, ccy, mgnMode="", ctType="", type="", subType="", after="", before="", limit=""
+    ) -> List[Dict]:
         """账单流水查询
 
         GET /api/v5/account/bills 限速：5次/s
@@ -213,17 +215,27 @@ class AccountAPI(Client):
         :param before: 请求此id之后
         :param limit: 分页返回的结果集数量，最大为100，不填默认返回100条
         """
-        params = dict(instType=instType, ccy=ccy, mgnMode=mgnMode, ctType=ctType, type=type, subType=subType,
-                      after=after, before=before, limit=limit)
+        params = dict(
+            instType=instType,
+            ccy=ccy,
+            mgnMode=mgnMode,
+            ctType=ctType,
+            type=type,
+            subType=subType,
+            after=after,
+            before=before,
+            limit=limit,
+        )
         async with self.GET_LEDGER_SEMAPHORE:
             res = await self._request_with_params(GET, GET_LEDGER, params)
-        assert res['code'] == '0', f"{GET_LEDGER}, msg={res['msg']}"
-        return res['data']
+        assert res["code"] == "0", f"{GET_LEDGER}, msg={res['msg']}"
+        return res["data"]
 
     ARCHIVE_LEDGER_SEMAPHORE = RateLimiter(5, 2)
 
-    async def get_archive_ledger(self, instType, ccy, mgnMode='', ctType='', type='', subType='', after='', before='',
-                                 limit='') -> List[Dict]:
+    async def get_archive_ledger(
+        self, instType, ccy, mgnMode="", ctType="", type="", subType="", after="", before="", limit=""
+    ) -> List[Dict]:
         """账单流水查询
 
         GET /api/v5/account/bills-archive 限速：5次/2s
@@ -239,12 +251,21 @@ class AccountAPI(Client):
         :param before: 请求此id之后
         :param limit: 分页返回的结果集数量，最大为100，不填默认返回100条
         """
-        params = dict(instType=instType, ccy=ccy, mgnMode=mgnMode, ctType=ctType, type=type, subType=subType,
-                      after=after, before=before, limit=limit)
+        params = dict(
+            instType=instType,
+            ccy=ccy,
+            mgnMode=mgnMode,
+            ctType=ctType,
+            type=type,
+            subType=subType,
+            after=after,
+            before=before,
+            limit=limit,
+        )
         async with self.ARCHIVE_LEDGER_SEMAPHORE:
             res = await self._request_with_params(GET, GET_ARCHIVE_LEDGER, params)
-        assert res['code'] == '0', f"{GET_ARCHIVE_LEDGER}, msg={res['msg']}"
-        return res['data']
+        assert res["code"] == "0", f"{GET_ARCHIVE_LEDGER}, msg={res['msg']}"
+        return res["data"]
 
     MARGIN_BALANCE_SEMAPHORE = RateLimiter(20, 2)
 
@@ -262,7 +283,7 @@ class AccountAPI(Client):
         params = dict(instId=instId, posSide=posSide, type=type, amt=amt)
         async with self.MARGIN_BALANCE_SEMAPHORE:
             res = await self._request_with_params(POST, MARGIN_BALANCE, params)
-        if res['code'] == '0':
+        if res["code"] == "0":
             return True
         else:
             logger.warning(f"{MARGIN_BALANCE}, msg={res['msg']}")
