@@ -4,7 +4,7 @@ import collections
 import datetime
 import hmac
 import time
-from src import consts as c
+from . import consts as c
 
 
 class RateLimiter(asyncio.Semaphore):
