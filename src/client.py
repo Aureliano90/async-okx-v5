@@ -1,4 +1,4 @@
-from src import utils, consts as c, exceptions
+from . import utils, consts as c, exceptions
 import asyncio
 from aiohttp import ClientSession, ClientTimeout, ClientError
 from datetime import datetime
