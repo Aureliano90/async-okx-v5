@@ -1,15 +1,15 @@
-from .client import Client
+from .client import OkxClient
 from .consts import *
 from .types import *
 from .utils import RateLimiter
 import logging
 import asyncio
 
-logger = logging.getLogger("TradeAPI")
-logger.setLevel(logging.DEBUG)
 
+class TradeAPI(OkxClient):
+    logger = logging.getLogger("TradeAPI")
+    logger.setLevel(logging.DEBUG)
 
-class TradeAPI(Client):
     def __init__(self, api_key, api_secret_key, passphrase, use_server_time=False, test=False, **kwargs):
         super(TradeAPI, self).__init__(api_key, api_secret_key, passphrase, use_server_time, test, **kwargs)
 

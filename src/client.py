@@ -1,23 +1,22 @@
-from . import consts as c, utils, exceptions
+from src import utils, consts as c, exceptions
 import asyncio
 from aiohttp import ClientSession, ClientTimeout, ClientError
 from datetime import datetime
 import json
 import logging
 
-logger = logging.getLogger("Client")
-logger.setLevel(logging.DEBUG)
-
 MAX_RETRY = 100
 BACKOFF_MULTIPLIER = 1.1
 
 
-class Client:
+class OkxClient:
+    logger = logging.getLogger("OkxClient")
+    logger.setLevel(logging.DEBUG)
     client = ClientSession(base_url=c.API_URL, timeout=ClientTimeout(5))
 
     def __init__(self, api_key, api_secret_key, passphrase, use_server_time=False, test=False, **kwargs):
         if kwargs:
-            Client.client = ClientSession(base_url=c.API_URL, **kwargs)
+            OkxClient.client = ClientSession(base_url=c.API_URL, **kwargs)
         self.API_KEY = api_key
         self.API_SECRET_KEY = api_secret_key
         self.PASSPHRASE = passphrase
@@ -74,7 +73,7 @@ class Client:
                 else:
                     raise ValueError
             except (ClientError, asyncio.TimeoutError) as exc:
-                logger.debug("Network error", exc_info=exc)
+                self.logger.debug("Network error", exc_info=exc)
                 await asyncio.sleep(backoff)
                 retry += 1
                 backoff *= BACKOFF_MULTIPLIER
@@ -84,7 +83,7 @@ class Client:
                     status = response.status
                     # Cloudflare error
                     if str(status).startswith("5"):
-                        logger.debug(f"Cloudflare error {response}")
+                        self.logger.debug(f"Cloudflare error {response}")
                         await asyncio.sleep(backoff)
                         retry += 1
                         backoff *= BACKOFF_MULTIPLIER
@@ -110,15 +109,15 @@ class Client:
                     # Requests too frequent
                     if status == 429:
                         retry += 1
-                        logger.debug(f"{request_path}, {json_res['msg']}")
+                        self.logger.debug(f"{request_path}, {json_res['msg']}")
                         await asyncio.sleep(2)
                         continue
                     success = True
 
                     # exception handle
                     if not str(status).startswith("2"):
-                        logger.error(f"{json_res['code']}: {json_res['msg']}")
-                        logger.error(f"Client error {status}: {request_path}")
+                        self.logger.error(f"{json_res['code']}: {json_res['msg']}")
+                        self.logger.error(f"Client error {status}: {request_path}")
                         raise exceptions.OkexAPIException(status, text, json_res)
         return json_res
 

@@ -1,14 +1,14 @@
-from .client import Client
+from .client import OkxClient
 from .consts import *
 from .types import *
 from .utils import RateLimiter
 import logging
 
-logger = logging.getLogger("AccountAPI")
-logger.setLevel(logging.DEBUG)
 
+class AccountAPI(OkxClient):
+    logger = logging.getLogger("AccountAPI")
+    logger.setLevel(logging.DEBUG)
 
-class AccountAPI(Client):
     def __init__(self, api_key, api_secret_key, passphrase, use_server_time=False, test=False, **kwargs):
         super(AccountAPI, self).__init__(api_key, api_secret_key, passphrase, use_server_time, test, **kwargs)
 
@@ -286,5 +286,5 @@ class AccountAPI(Client):
         if res["code"] == "0":
             return True
         else:
-            logger.warning(f"{MARGIN_BALANCE}, msg={res['msg']}")
+            self.logger.warning(f"{MARGIN_BALANCE}, msg={res['msg']}")
             return False

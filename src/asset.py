@@ -1,14 +1,14 @@
-from .client import Client
+from .client import OkxClient
 from .consts import *
 from .types import *
 from .utils import RateLimiter
 import logging
 
-logger = logging.getLogger("AssetAPI")
-logger.setLevel(logging.DEBUG)
 
+class AssetAPI(OkxClient):
+    logger = logging.getLogger("AssetAPI")
+    logger.setLevel(logging.DEBUG)
 
-class AssetAPI(Client):
     def __init__(self, api_key, api_secret_key, passphrase, use_server_time=False, test=False, **kwargs):
         super(AssetAPI, self).__init__(api_key, api_secret_key, passphrase, use_server_time, test, **kwargs)
 
@@ -58,5 +58,5 @@ class AssetAPI(Client):
         if res["code"] == "0":
             return res["data"][0]
         else:
-            logger.warning(f"{ASSET_TRANSFER}, msg={res['msg']}")
+            self.logger.warning(f"{ASSET_TRANSFER}, msg={res['msg']}")
             raise Exception(f"{ASSET_TRANSFER}, msg={res['msg']}")

@@ -1,16 +1,16 @@
 import asyncio
-from .client import Client
+from .client import OkxClient
 from .consts import *
 from .exceptions import *
 from .types import *
 from .utils import RateLimiter
 import logging
 
-logger = logging.getLogger("PublicAPI")
-logger.setLevel(logging.DEBUG)
 
+class PublicAPI(OkxClient):
+    logger = logging.getLogger("PublicAPI")
+    logger.setLevel(logging.DEBUG)
 
-class PublicAPI(Client):
     def __init__(self, use_server_time=False, test=False, **kwargs):
         super(PublicAPI, self).__init__("", "", "", use_server_time, test, **kwargs)
 
