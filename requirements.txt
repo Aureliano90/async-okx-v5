@@ -1,5 +1,7 @@
 aiohttp[speedups]~=3.8.4
 aiostream~=0.4.5
 charset-normalizer~=3.1.0
+pytest~=7.3.2
+pytest-asyncio~=0.21.0
 python-dotenv~=1.0.0
 websockets~=11.0.3

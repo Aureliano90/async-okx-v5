@@ -4,16 +4,13 @@ class OkexException(Exception):
 
 
 class OkexAPIException(OkexException):
-    def __init__(self, status, text, json):
-        print(f"{text}, {status}")
-        self.code = 0
+    def __init__(self, status, json):
         if "code" in json.keys():
             self.code = json["code"]
             self.message = json["msg"]
         else:
             self.code = "None"
             self.message = "System error"
-
         self.status_code = status
 
     def __str__(self):  # pragma: no cover

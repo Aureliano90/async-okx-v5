@@ -118,7 +118,7 @@ class OkxClient:
                     if not str(status).startswith("2"):
                         self.logger.error(f"{json_res['code']}: {json_res['msg']}")
                         self.logger.error(f"Client error {status}: {request_path}")
-                        raise exceptions.OkexAPIException(status, text, json_res)
+                        raise exceptions.OkexAPIException(status, json_res)
         return json_res
 
     async def _request_without_params(self, method, request_path):

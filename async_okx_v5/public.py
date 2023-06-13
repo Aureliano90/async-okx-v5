@@ -3,7 +3,7 @@ from .client import OkxClient
 from .consts import *
 from .exceptions import *
 from .types import *
-from .utils import RateLimiter
+from .utils import RateLimiter, query_with_pagination
 import logging
 
 
@@ -89,6 +89,17 @@ class PublicAPI(OkxClient):
         assert res["code"] == "0", f"{FUNDING_RATE_HISTORY}, msg={res['msg']}"
         return res["data"]
 
+    async def get_funding_history(self, instId, count=270):
+        """下载最近3个月资金费率"""
+        return await query_with_pagination(
+            self.get_historical_funding_rate,
+            tag="fundingTime",
+            page_size=100,
+            count=count,
+            interval=28800000,
+            instId=instId,
+        )
+
     GET_TICKERS_SEMAPHORE = RateLimiter(20, 2)
 
     async def get_tickers(self, instType: InstType, uly="") -> List[TickerResponse]:
@@ -147,7 +158,7 @@ class PublicAPI(OkxClient):
 
     HISTORY_CANDLES_SEMAPHORE = RateLimiter(20, 2)
 
-    async def history_candles(self, instId: str, bar: Bar = "4H", after="", before="", limit="") -> List[List]:
+    async def history_candles(self, instId: str, bar: Bar = "4H", after="", before="", limit="") -> List[Candle]:
         """获取最近几年的历史k线数据
 
         GET /api/v5/market/history-candles 限速： 20次/2s
@@ -162,4 +173,43 @@ class PublicAPI(OkxClient):
         async with self.HISTORY_CANDLES_SEMAPHORE:
             res = await self._request_with_params(GET, HISTORY_CANDLES, params)
         assert res["code"] == "0", f"{HISTORY_CANDLES}, msg={res['msg']}"
-        return res["data"]
+        return [Candle(*candle) for candle in res["data"]]
+
+    async def get_candles_for_days(self, instId: str, days: int, bar: Bar = "4H") -> List[Candle]:
+        """获取最近K线
+
+        :param instId: 产品ID
+        :param days: 最近几天
+        :param bar: 时间粒度，默认值1m，如 [1m/3m/5m/15m/30m/1H/2H/4H/6H/12H/1D/1W/1M/3M/6M/1Y]
+        """
+        interval = 0
+        if bar.endswith("m"):
+            count = days * 1440 // int(bar[:-1]) + 1
+            interval = int(bar[:-1]) * 60000
+        elif bar.endswith("H"):
+            count = days * 24 // int(bar[:-1]) + 1
+            interval = int(bar[:-1]) * 3600000
+        elif bar.endswith("D"):
+            count = days + 1
+            interval = int(bar[:-1]) * 86400000
+        elif bar.endswith("W"):
+            count = days // 7 + 1
+            interval = int(bar[:-1]) * 604800000
+        elif bar.endswith("M"):
+            count = days // (30 * int(bar[:-1])) + 1
+        else:
+            count = days // 365 + 1
+        if count > 1440:
+            return await query_with_pagination(
+                self.history_candles,
+                tag=0,
+                page_size=100,
+                count=count,
+                interval=interval,
+                instId=instId,
+                bar=bar,
+            )
+        else:
+            return await query_with_pagination(
+                self.get_candles, tag=0, page_size=300, count=count, interval=interval, instId=instId, bar=bar
+            )
